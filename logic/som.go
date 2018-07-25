@@ -15,6 +15,13 @@ type Unit struct {
 	green int
 }
 
+// Factor 要素係数型
+type Factor struct {
+	red   float64
+	blue  float64
+	green float64
+}
+
 // Som Unitで構成された球面SOM
 type Som struct {
 	// マップ
@@ -24,6 +31,8 @@ type Som struct {
 	midpointY int
 	// 近傍半径
 	radius int
+	// 不偏分散係数
+	uVariance Factor
 }
 
 // DataMap データ実体
@@ -49,8 +58,7 @@ func InitMap(r int, fn func(Unit, Unit) int) bool {
 	// 中点の初期化
 	DataMap.midpointX = r / 2
 	DataMap.midpointY = r / 2
-	// 近傍半径の初期化
-	DataMap.radius = r / 2
+
 	// Mapの初期化
 	DataMap.sMap = make([][]Unit, r)
 	for x := 0; x < r; x++ {
@@ -62,6 +70,10 @@ func InitMap(r int, fn func(Unit, Unit) int) bool {
 		}
 	}
 
+	// 近傍半径の初期化
+	DataMap.uVariance = calcUVariance(DataMap.sMap)
+	DataMap.radius = calcRadius(DataMap.uVariance, r)
+
 	return true
 }
 
@@ -70,22 +82,54 @@ func getRadiusIndex(i int) int {
 	return i % (len(DataMap.sMap))
 }
 
-// 近傍半径更新関数
-func updateRadius() int {
-	return len(DataMap.sMap) / 2
+// 不偏分散計算関数
+func calcUVariance(values [][]Unit) (resUVariance Factor) {
+	//平均値の計算
+	var redAve, blueAve, greenAve float64
+	num := 0
+	for x := 0; x < len(values); x++ {
+		for y := 0; y < len(values[x]); y++ {
+			redAve += float64(values[x][y].red)
+			blueAve += float64(values[x][y].blue)
+			greenAve += float64(values[x][y].green)
+			resUVariance.red += float64(values[x][y].red * values[x][y].red)
+			resUVariance.blue += float64(values[x][y].blue * values[x][y].blue)
+			resUVariance.green += float64(values[x][y].green * values[x][y].green)
+			num++
+		}
+	}
+	fnum := float64(num)
+	redAve = redAve / fnum
+	blueAve = blueAve / fnum
+	greenAve = greenAve / fnum
+
+	resUVariance.red = (resUVariance.red - fnum*redAve) / (fnum - 1)
+	resUVariance.blue = (resUVariance.blue - fnum*blueAve) / (fnum - 1)
+	resUVariance.green = (resUVariance.green - fnum*greenAve) / (fnum - 1)
+	return
 }
 
-// 係数計算
-func calcRFactor() float64 {
-	return 1.0
+// 近傍半径更新関数
+func calcRadius(UVariance Factor, r int) int {
+
+	return r / 2
+}
+
+// 係数計算関数
+func calcRFactor(vectorX int, vectorY int, uVariance Factor) (resFactor Factor) {
+	scala := float64(vectorX*vectorX + vectorY*vectorY)
+	resFactor.red = math.Exp(-scala / (2 * uVariance.red))
+	resFactor.blue = math.Exp(-scala / (2 * uVariance.blue))
+	resFactor.green = math.Exp(-scala / (2 * uVariance.green))
+	return
 }
 
 // Unit更新関数
-func updateUnit(before Unit, t Unit, rFactor float64) (r Unit) {
+func updateUnit(before Unit, t Unit, rFactor Factor) (r Unit) {
 	r = before
-	r.red += int(rFactor * float64(t.red-before.red))
-	r.green += int(rFactor * float64(t.green-before.green))
-	r.blue += int(rFactor * float64(t.blue-before.blue))
+	r.red += int(rFactor.red * float64(t.red-before.red))
+	r.green += int(rFactor.blue * float64(t.green-before.green))
+	r.blue += int(rFactor.green * float64(t.blue-before.blue))
 	return r
 }
 
@@ -111,12 +155,14 @@ func Trait(t Unit) float64 {
 		for y := BMUindexY - DataMap.radius; y < (BMUindexY + DataMap.radius); y++ {
 			indexX := getRadiusIndex(x)
 			indexY := getRadiusIndex(y)
-			rFactor := calcRFactor()
+			rFactor := calcRFactor(DataMap.midpointX-x, DataMap.midpointY-y, DataMap.uVariance)
 			DataMap.sMap[indexX][indexY] = updateUnit(DataMap.sMap[indexX][indexY], t, rFactor)
 		}
 	}
+	// 標準偏差を更新する
+	DataMap.uVariance = calcUVariance(DataMap.sMap)
 	// 近傍半径を更新する
-	DataMap.radius = updateRadius()
+	DataMap.radius = calcRadius(DataMap.uVariance, len(DataMap.sMap))
 	// 中点を更新する
 	if DataMap.midpointX < BMUindexX {
 		DataMap.midpointX++
