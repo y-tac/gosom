@@ -9,18 +9,18 @@ import (
 
 // Request格納用
 type traitAPIRequest struct {
-	unit som.Unit
+	Unit som.Unit
 }
 
 // Response格納用
 type traitAPIResponse struct {
-	distance float64
+	Distance float64
 }
 type mapAPIResponse struct {
-	sMap [][]som.Unit
+	SomMap [][]som.Unit
 }
 type errorAPIResponse struct {
-	message string
+	Message string
 }
 
 // MainPage サンプルページ
@@ -39,7 +39,7 @@ func TraitAPI(tc chan som.TraitChan) echo.HandlerFunc {
 		}
 
 		var data som.TraitChan
-		data.Unit = req.unit
+		data.Unit = req.Unit
 		data.ResDistance = make(chan float64)
 		tc <- data
 		value, ok := <-data.ResDistance
