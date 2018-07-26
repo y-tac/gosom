@@ -11,16 +11,12 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig `json:"server"`
-	Som    SomConfig    `json:"db"`
+	Server ServerConfig  `json:"server"`
+	Som    som.SomConfig `json:"db"`
 }
 type ServerConfig struct {
 	Host string `json:"host"`
 	Port string `json:"port"`
-}
-
-type SomConfig struct {
-	Size int `json:"size"`
 }
 
 func main() {
@@ -30,11 +26,7 @@ func main() {
 	}
 	var config Config
 	json.Unmarshal(file, &config)
-
-	err := som.InitMapByEuclidean(config.Som.Size)
-	if err != nil {
-		panic(err)
-	}
+	somCahnel := som.SomRoutine(config.Som)
 
 	// Echoのインスタンス作る
 	e := echo.New()
@@ -47,5 +39,5 @@ func main() {
 	e.GET("/hello", handler.MainPage())
 
 	// サーバー起動
-	e.Start(":" + config.Server.Port) //ポート番号指定してね
+	e.Start(":" + config.Server.Port)
 }
