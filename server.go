@@ -26,7 +26,7 @@ func main() {
 	}
 	var config Config
 	json.Unmarshal(file, &config)
-	somCahnel := som.SomRoutine(config.Som)
+	chset := som.SomRoutine(config.Som)
 
 	// Echoのインスタンス作る
 	e := echo.New()
@@ -37,6 +37,8 @@ func main() {
 
 	// ルーティング
 	e.GET("/hello", handler.MainPage())
+	e.GET("/trait", handler.TraitAPI(chset.TraitCh))
+	e.GET("/map", handler.MapAPI(chset.MapCh))
 
 	// サーバー起動
 	e.Start(":" + config.Server.Port)
