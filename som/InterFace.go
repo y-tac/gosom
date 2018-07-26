@@ -1,5 +1,9 @@
 package som
 
+import (
+	"fmt"
+)
+
 // SomConfig SOMが要求するコンフィグ
 type SomConfig struct {
 	Size int `json:"size"`
@@ -38,6 +42,7 @@ func SomRoutine(conf SomConfig) (chset ChanSet) {
 				if !ok {
 					return
 				}
+				fmt.Println(traitCh.Unit)
 				traitCh.ResDistance <- trait(traitCh.Unit)
 			case mapCh, ok := <-chset.MapCh:
 				if !ok {

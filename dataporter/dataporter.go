@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -16,6 +17,11 @@ import (
 // Request格納用
 type traitAPIRequest struct {
 	Unit som.Unit
+}
+
+// Response格納用
+type traitAPIResponse struct {
+	Distance float64
 }
 
 func main() {
@@ -33,7 +39,27 @@ func main() {
 			fmt.Println(err.Error())
 			return
 		}
-		fmt.Println(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		// ステータスによるエラーハンドリング
+		if resp.StatusCode != http.StatusOK {
+			fmt.Printf("%s", body)
+			return
+		}
+
+		// BodyのJSONをデコードする
+		output := traitAPIResponse{}
+		err = json.Unmarshal(body, &output)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		fmt.Printf("%#v", output)
 		time.Sleep(5 * time.Second)
 
 	}

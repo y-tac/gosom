@@ -1,6 +1,7 @@
 package som
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -80,7 +81,7 @@ func initMap(r int, fn func(Unit, Unit) int) error {
 
 // som index変換
 func getRadiusIndex(i int) int {
-	return i % (len(DataMap.sMap))
+	return (i + len(DataMap.sMap)) % (len(DataMap.sMap))
 }
 
 // 不偏分散計算関数
@@ -164,6 +165,10 @@ func trait(t Unit) float64 {
 	DataMap.uVariance = calcUVariance(DataMap.sMap)
 	// 近傍半径を更新する
 	DataMap.radius = calcRadius(DataMap.uVariance, len(DataMap.sMap))
+	fmt.Println("BMU:", BMUindexX, BMUindexY, "MID:", DataMap.midpointX, DataMap.midpointY, DataMap.radius, DataMap.uVariance)
+
+	// 中点からの距離を計算する
+	resDist := math.Sqrt(math.Pow(float64(BMUindexX-DataMap.midpointX), 2) + math.Pow(float64(BMUindexY-DataMap.midpointY), 2))
 	// 中点を更新する
 	if DataMap.midpointX < BMUindexX {
 		DataMap.midpointX++
@@ -175,7 +180,5 @@ func trait(t Unit) float64 {
 	} else {
 		DataMap.midpointY--
 	}
-	// 中点からの距離を計算する
-	resDist := math.Sqrt(math.Pow(float64(BMUindexX-DataMap.midpointX), 2) + math.Pow(float64(BMUindexY-DataMap.midpointY), 2))
 	return resDist
 }
