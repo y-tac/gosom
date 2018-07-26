@@ -110,9 +110,9 @@ func calcUVariance(values [][]Unit) (resUVariance Factor) {
 }
 
 // 近傍半径更新関数
-func calcRadius(UVariance Factor, r int) int {
-
-	return r / 2
+func calcRadius(uv Factor, r int) (result int) {
+	vectorX, vectorY, vectorZ := math.Sqrt(uv.red), math.Sqrt(uv.blue), math.Sqrt(uv.green)
+	return int(float64(r) * math.Sqrt(vectorX*vectorX+vectorY*vectorY+vectorZ*vectorZ) / math.Sqrt(3*maxValue*maxValue))
 }
 
 // 係数計算関数
