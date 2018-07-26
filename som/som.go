@@ -47,12 +47,12 @@ func euclideandSqDistance(a Unit, b Unit) int {
 }
 
 // InitMapByEuclidean SOM初期化関数(ユークリッド距離の二乗で計算)
-func InitMapByEuclidean(r int) bool {
+func InitMapByEuclidean(r int) error {
 	return InitMap(r, euclideandSqDistance)
 }
 
 // InitMap SOM初期化関数
-func InitMap(r int, fn func(Unit, Unit) int) bool {
+func InitMap(r int, fn func(Unit, Unit) int) error {
 	distanceFunc = fn
 	rand.Seed(time.Now().UnixNano())
 	// 中点の初期化
@@ -74,7 +74,7 @@ func InitMap(r int, fn func(Unit, Unit) int) bool {
 	DataMap.uVariance = calcUVariance(DataMap.sMap)
 	DataMap.radius = calcRadius(DataMap.uVariance, r)
 
-	return true
+	return nil
 }
 
 // som index変換

@@ -1,0 +1,10 @@
+{
+    "server": {
+      "host": "localhost",
+      "port": "3306"
+    },
+    "som": {
+      "size": 10
+    }
+  }
+  
