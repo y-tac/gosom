@@ -118,11 +118,12 @@ func calcRadius(uv Factor, r int) (result int) {
 }
 
 // 係数計算関数
-func calcRFactor(vectorX int, vectorY int, uVariance Factor) (resFactor Factor) {
-	scala := float64(vectorX*vectorX + vectorY*vectorY)
-	resFactor.Red = math.Exp(-scala / (2 * uVariance.Red))
-	resFactor.Blue = math.Exp(-scala / (2 * uVariance.Blue))
-	resFactor.Green = math.Exp(-scala / (2 * uVariance.Green))
+func calcRFactor(vectorX int, vectorY int, uVariance Factor, r int) (resFactor Factor) {
+	sqScala := float64(vectorX*vectorX + vectorY*vectorY)
+	scala := math.Sqrt(sqScala)
+	resFactor.Red = math.Exp(-sqScala/(2*uVariance.Red)) * scala / float64(r)
+	resFactor.Blue = math.Exp(-sqScala/(2*uVariance.Blue)) * scala / float64(r)
+	resFactor.Green = math.Exp(-sqScala/(2*uVariance.Green)) * scala / float64(r)
 	return
 }
 
@@ -157,7 +158,7 @@ func trait(t Unit) float64 {
 		for y := BMUindexY - DataMap.radius; y < (BMUindexY + DataMap.radius); y++ {
 			indexX := getRadiusIndex(x)
 			indexY := getRadiusIndex(y)
-			rFactor := calcRFactor(DataMap.midpointX-x, DataMap.midpointY-y, DataMap.uVariance)
+			rFactor := calcRFactor(DataMap.midpointX-x, DataMap.midpointY-y, DataMap.uVariance, len(DataMap.sMap))
 			DataMap.sMap[indexX][indexY] = updateUnit(DataMap.sMap[indexX][indexY], t, rFactor)
 		}
 	}
