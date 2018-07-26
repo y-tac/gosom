@@ -11,10 +11,13 @@ import (
 	"github.com/y-tac/gosom/som"
 )
 
+// Config 構造体。サブパッケージのconfigも設定する
 type Config struct {
 	Server ServerConfig  `json:"server"`
 	Som    som.SomConfig `json:"som"`
 }
+
+// ServerConfig サーバconfigを設定
 type ServerConfig struct {
 	Host string `json:"host"`
 	Port string `json:"port"`
@@ -40,7 +43,7 @@ func main() {
 
 	// ルーティング
 	e.GET("/hello", handler.MainPage())
-	e.GET("/trait", handler.TraitAPI(chset.TraitCh))
+	e.POST("/trait", handler.TraitAPI(chset.TraitCh))
 	e.GET("/map", handler.MapAPI(chset.MapCh))
 
 	// サーバー起動
