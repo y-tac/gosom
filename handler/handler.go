@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"../som"
 	"github.com/labstack/echo"
+	"github.com/y-tac/gosom/som"
 )
 
 // Request格納用

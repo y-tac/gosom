@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"./handler"
-	"./som"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/y-tac/gosom/handler"
+	"github.com/y-tac/gosom/som"
 )
 
 type Config struct {
