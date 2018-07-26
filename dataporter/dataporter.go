@@ -33,7 +33,7 @@ func main() {
 			fmt.Println(err.Error())
 			return
 		}
-		fmt.println(resp.Body)
+		fmt.Println(resp.Body)
 		time.Sleep(5 * time.Second)
 
 	}
