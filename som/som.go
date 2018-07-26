@@ -10,16 +10,16 @@ const maxValue = 256
 
 // Unit 要素型
 type Unit struct {
-	red   int
-	blue  int
-	green int
+	Red   int
+	Blue  int
+	Green int
 }
 
 // Factor 要素係数型
 type Factor struct {
-	red   float64
-	blue  float64
-	green float64
+	Red   float64
+	Blue  float64
+	Green float64
 }
 
 // Som Unitで構成された球面SOM
@@ -43,16 +43,16 @@ var distanceFunc func(Unit, Unit) int
 
 // euclideandistance デフォルト距離計測関数。a,b間のユークリッド距離の二乗を計算する
 func euclideandSqDistance(a Unit, b Unit) int {
-	return (((a.red - b.red) * (a.red - b.red)) + ((a.blue - b.blue) * (a.blue - b.blue)) + ((a.green - b.green) * (a.green - b.green)))
+	return (((a.Red - b.Red) * (a.Red - b.Red)) + ((a.Blue - b.Blue) * (a.Blue - b.Blue)) + ((a.Green - b.Green) * (a.Green - b.Green)))
 }
 
 // InitMapByEuclidean SOM初期化関数(ユークリッド距離の二乗で計算)
-func InitMapByEuclidean(r int) error {
-	return InitMap(r, euclideandSqDistance)
+func initMapByEuclidean(r int) error {
+	return initMap(r, euclideandSqDistance)
 }
 
 // InitMap SOM初期化関数
-func InitMap(r int, fn func(Unit, Unit) int) error {
+func initMap(r int, fn func(Unit, Unit) int) error {
 	distanceFunc = fn
 	rand.Seed(time.Now().UnixNano())
 	// 中点の初期化
@@ -64,9 +64,9 @@ func InitMap(r int, fn func(Unit, Unit) int) error {
 	for x := 0; x < r; x++ {
 		DataMap.sMap[x] = make([]Unit, r)
 		for y := 0; y < r; y++ {
-			DataMap.sMap[x][y].red = rand.Intn(maxValue)
-			DataMap.sMap[x][y].blue = rand.Intn(maxValue)
-			DataMap.sMap[x][y].green = rand.Intn(maxValue)
+			DataMap.sMap[x][y].Red = rand.Intn(maxValue)
+			DataMap.sMap[x][y].Blue = rand.Intn(maxValue)
+			DataMap.sMap[x][y].Green = rand.Intn(maxValue)
 		}
 	}
 
@@ -85,56 +85,56 @@ func getRadiusIndex(i int) int {
 // 不偏分散計算関数
 func calcUVariance(values [][]Unit) (resUVariance Factor) {
 	//平均値の計算
-	var redAve, blueAve, greenAve float64
+	var RedAve, BlueAve, GreenAve float64
 	num := 0
 	for x := 0; x < len(values); x++ {
 		for y := 0; y < len(values[x]); y++ {
-			redAve += float64(values[x][y].red)
-			blueAve += float64(values[x][y].blue)
-			greenAve += float64(values[x][y].green)
-			resUVariance.red += float64(values[x][y].red * values[x][y].red)
-			resUVariance.blue += float64(values[x][y].blue * values[x][y].blue)
-			resUVariance.green += float64(values[x][y].green * values[x][y].green)
+			RedAve += float64(values[x][y].Red)
+			BlueAve += float64(values[x][y].Blue)
+			GreenAve += float64(values[x][y].Green)
+			resUVariance.Red += float64(values[x][y].Red * values[x][y].Red)
+			resUVariance.Blue += float64(values[x][y].Blue * values[x][y].Blue)
+			resUVariance.Green += float64(values[x][y].Green * values[x][y].Green)
 			num++
 		}
 	}
 	fnum := float64(num)
-	redAve = redAve / fnum
-	blueAve = blueAve / fnum
-	greenAve = greenAve / fnum
+	RedAve = RedAve / fnum
+	BlueAve = BlueAve / fnum
+	GreenAve = GreenAve / fnum
 
-	resUVariance.red = (resUVariance.red - fnum*redAve) / (fnum - 1)
-	resUVariance.blue = (resUVariance.blue - fnum*blueAve) / (fnum - 1)
-	resUVariance.green = (resUVariance.green - fnum*greenAve) / (fnum - 1)
+	resUVariance.Red = (resUVariance.Red - fnum*RedAve) / (fnum - 1)
+	resUVariance.Blue = (resUVariance.Blue - fnum*BlueAve) / (fnum - 1)
+	resUVariance.Green = (resUVariance.Green - fnum*GreenAve) / (fnum - 1)
 	return
 }
 
 // 近傍半径更新関数
 func calcRadius(uv Factor, r int) (result int) {
-	vectorX, vectorY, vectorZ := math.Sqrt(uv.red), math.Sqrt(uv.blue), math.Sqrt(uv.green)
+	vectorX, vectorY, vectorZ := math.Sqrt(uv.Red), math.Sqrt(uv.Blue), math.Sqrt(uv.Green)
 	return int(float64(r) * math.Sqrt(vectorX*vectorX+vectorY*vectorY+vectorZ*vectorZ) / math.Sqrt(3*maxValue*maxValue))
 }
 
 // 係数計算関数
 func calcRFactor(vectorX int, vectorY int, uVariance Factor) (resFactor Factor) {
 	scala := float64(vectorX*vectorX + vectorY*vectorY)
-	resFactor.red = math.Exp(-scala / (2 * uVariance.red))
-	resFactor.blue = math.Exp(-scala / (2 * uVariance.blue))
-	resFactor.green = math.Exp(-scala / (2 * uVariance.green))
+	resFactor.Red = math.Exp(-scala / (2 * uVariance.Red))
+	resFactor.Blue = math.Exp(-scala / (2 * uVariance.Blue))
+	resFactor.Green = math.Exp(-scala / (2 * uVariance.Green))
 	return
 }
 
 // Unit更新関数
 func updateUnit(before Unit, t Unit, rFactor Factor) (r Unit) {
 	r = before
-	r.red += int(rFactor.red * float64(t.red-before.red))
-	r.green += int(rFactor.blue * float64(t.green-before.green))
-	r.blue += int(rFactor.green * float64(t.blue-before.blue))
+	r.Red += int(rFactor.Red * float64(t.Red-before.Red))
+	r.Green += int(rFactor.Blue * float64(t.Green-before.Green))
+	r.Blue += int(rFactor.Green * float64(t.Blue-before.Blue))
 	return r
 }
 
 // Trait SOM更新関数。Unitのパラメータを受け取って中点からの距離を返却する
-func Trait(t Unit) float64 {
+func trait(t Unit) float64 {
 	// 初期値として適当な場所の距離を入れておく。
 	BMUindexX, BMUindexY := 0, 0
 	var dMin = distanceFunc(t, DataMap.sMap[0][0])
@@ -177,9 +177,4 @@ func Trait(t Unit) float64 {
 	// 中点からの距離を計算する
 	resDist := math.Sqrt(math.Pow(float64(BMUindexX-DataMap.midpointX), 2) + math.Pow(float64(BMUindexY-DataMap.midpointY), 2))
 	return resDist
-}
-
-// Map SOM取得関数
-func Map() [][]Unit {
-	return DataMap.sMap
 }
