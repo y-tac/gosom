@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-const maxValue = 256
+// MaxValue som unitの最大値
+const MaxValue = 256
 
 // Unit 要素型
 type Unit struct {
@@ -64,9 +65,9 @@ func initMap(r int, fn func(Unit, Unit) int) error {
 	for x := 0; x < r; x++ {
 		DataMap.sMap[x] = make([]Unit, r)
 		for y := 0; y < r; y++ {
-			DataMap.sMap[x][y].Red = rand.Intn(maxValue)
-			DataMap.sMap[x][y].Blue = rand.Intn(maxValue)
-			DataMap.sMap[x][y].Green = rand.Intn(maxValue)
+			DataMap.sMap[x][y].Red = rand.Intn(MaxValue)
+			DataMap.sMap[x][y].Blue = rand.Intn(MaxValue)
+			DataMap.sMap[x][y].Green = rand.Intn(MaxValue)
 		}
 	}
 
@@ -112,7 +113,7 @@ func calcUVariance(values [][]Unit) (resUVariance Factor) {
 // 近傍半径更新関数
 func calcRadius(uv Factor, r int) (result int) {
 	vectorX, vectorY, vectorZ := math.Sqrt(uv.Red), math.Sqrt(uv.Blue), math.Sqrt(uv.Green)
-	return int(float64(r) * math.Sqrt(vectorX*vectorX+vectorY*vectorY+vectorZ*vectorZ) / math.Sqrt(3*maxValue*maxValue))
+	return int(float64(r) * math.Sqrt(vectorX*vectorX+vectorY*vectorY+vectorZ*vectorZ) / math.Sqrt(3*MaxValue*MaxValue))
 }
 
 // 係数計算関数
