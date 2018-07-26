@@ -27,7 +27,7 @@ func SomRoutine(conf SomConfig) (chset ChanSet) {
 	chset.TraitCh = make(chan TraitChan)
 	chset.MapCh = make(chan MapChan)
 
-	go func(chset ChanSet) {
+	go func(chset ChanSet, conf SomConfig) {
 		err := initMapByEuclidean(conf.Size)
 		if err != nil {
 			panic(err)
@@ -46,6 +46,6 @@ func SomRoutine(conf SomConfig) (chset ChanSet) {
 				mapCh.ResMap <- DataMap.sMap
 			}
 		}
-	}(chset)
+	}(chset, conf)
 	return
 }

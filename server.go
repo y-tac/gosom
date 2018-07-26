@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/labstack/echo"
@@ -12,7 +13,7 @@ import (
 
 type Config struct {
 	Server ServerConfig  `json:"server"`
-	Som    som.SomConfig `json:"db"`
+	Som    som.SomConfig `json:"som"`
 }
 type ServerConfig struct {
 	Host string `json:"host"`
@@ -26,6 +27,8 @@ func main() {
 	}
 	var config Config
 	json.Unmarshal(file, &config)
+	fmt.Println(config)
+
 	chset := som.SomRoutine(config.Som)
 
 	// Echoのインスタンス作る
