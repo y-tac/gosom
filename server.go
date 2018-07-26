@@ -1,12 +1,39 @@
 package main
 
 import (
-	"./handler"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/y-tac/gosom/handler"
+	"github.com/y-tac/gosom/som"
 )
 
+// Config 構造体。サブパッケージのconfigも設定する
+type Config struct {
+	Server ServerConfig  `json:"server"`
+	Som    som.SomConfig `json:"som"`
+}
+
+// ServerConfig サーバconfigを設定
+type ServerConfig struct {
+	Host string `json:"host"`
+	Port string `json:"port"`
+}
+
 func main() {
+	file, err := ioutil.ReadFile("config.json")
+	if err != nil {
+		panic(err)
+	}
+	var config Config
+	json.Unmarshal(file, &config)
+	fmt.Println(config)
+
+	chset := som.SomRoutine(config.Som)
+
 	// Echoのインスタンス作る
 	e := echo.New()
 
@@ -16,7 +43,9 @@ func main() {
 
 	// ルーティング
 	e.GET("/hello", handler.MainPage())
+	e.POST("/trait", handler.TraitAPI(chset.TraitCh))
+	e.GET("/map", handler.MapAPI(chset.MapCh))
 
 	// サーバー起動
-	e.Start(":1323") //ポート番号指定してね
+	e.Start(":" + config.Server.Port)
 }
