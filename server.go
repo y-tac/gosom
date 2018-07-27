@@ -40,6 +40,7 @@ func main() {
 	// 全てのリクエストで差し込みたいミドルウェア（ログとか）はここ
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Static("/front", "front/dist")
 
 	// ルーティング
 	e.GET("/hello", handler.MainPage())
