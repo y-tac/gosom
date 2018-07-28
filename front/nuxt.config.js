@@ -13,14 +13,24 @@ module.exports = {
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
     ]
   },
+  modules: [
+    '@nuxtjs/axios',
+  ],
+  axios: {
+  },
+
   /*
   ** Customize the progress bar color
   */
   loading: { color: '#3B8070' },
+  router: {
+    base: '/front/'
+  },
   /*
   ** Build configuration
   */
   build: {
+    vendor: ['axios']
     /*
     ** Run ESLint on save
     */

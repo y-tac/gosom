@@ -1,20 +1,10 @@
 <template>
   <section class="container">
     <div>
-      <app-logo/>
-      <h1 class="title">
-        front
-      </h1>
-      <h2 class="subtitle">
-        Nuxt.js project
-      </h2>
+      <gosom-map/>
       <div class="links">
         <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          class="button--green">Documentation</a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
+          href="https://github.com/y-tac/gosomß"
           target="_blank"
           class="button--grey">GitHub</a>
       </div>
@@ -23,11 +13,11 @@
 </template>
 
 <script>
-import AppLogo from '~/components/AppLogo.vue'
+import GosomMap from '~/components/GosomMap.vue'
 
 export default {
   components: {
-    AppLogo
+    GosomMap
   }
 }
 </script>
