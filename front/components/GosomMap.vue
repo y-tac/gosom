@@ -1,28 +1,48 @@
 <template>
   <div id="gosommap">
    <h1>{{ title }}</h1>
-   {{ info }}
+   <canvas id="gosomcanvas" style="paddling:0;"></canvas>
   </div>
 </template>
 
 <style>
 #gosommap {
   display: inline-block;
-  animation: turn 2s linear forwards 1s;
-  transform: rotateX(180deg);
   position: relative;
   overflow: hidden;
-  height: 245px;
-  width: 245px;
+  height: 300px;
+  width: 300px;
 }
 
 </style>
 
 <script>
+import axios from 'axios'
+
 export default {
-  async asyncData ({ params }) {
-    let { data } = await axios.get(`http://localhost:3306/map`)
-    return { info: data }
+  data () {
+    return {
+      info:"", title:"test"
+    }
+  },
+  created () {
+    axios.get('/map', {
+      params: {
+        page: 1,
+        per_page: 6,
+        query: 'nuxt.js'
+      }
+    })
+    .then(response => {
+      this.info = response.data
+    })
+    .catch(e => {
+      console.error('error:', e)
+    })
+  },
+  mounted: function () {
+    console.log('created')
+    this.$store.dispatch('createFunction')
   }
 
 }
