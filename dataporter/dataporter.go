@@ -66,7 +66,8 @@ func main() {
 
 }
 func cpuData() int {
-	cpus, _ := cpu.Percent(time.Duration(1)*time.Second, true)
+	cpus, _ := cpu.Percent(time.Duration(1)*time.Second, false)
+	fmt.Println(cpus)
 	return int(cpus[0] / 100 * som.MaxValue)
 }
 
@@ -81,7 +82,7 @@ func diskusage() int {
 	for _, part := range parts {
 		u, _ := disk.Usage(part.Mountpoint)
 		somTotal += float64(u.Total)
-		somUsed += float64(u.Total)
+		somUsed += float64(u.Used)
 	}
 	return int(float64(som.MaxValue) * somUsed / somTotal)
 
