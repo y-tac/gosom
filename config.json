@@ -4,7 +4,11 @@
       "port": "3306"
     },
     "som": {
-      "size": 1000
+      "size": 200
+    },
+    "dataporter": {
+      "enable_porter": true,
+      "baseurl"  : "http://localhost:3306"
     }
   }
   

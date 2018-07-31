@@ -7,14 +7,16 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/y-tac/gosom/dataporter"
 	"github.com/y-tac/gosom/handler"
 	"github.com/y-tac/gosom/som"
 )
 
 // Config 構造体。サブパッケージのconfigも設定する
 type Config struct {
-	Server ServerConfig  `json:"server"`
-	Som    som.SomConfig `json:"som"`
+	Server     ServerConfig                `json:"server"`
+	Som        som.SomConfig               `json:"som"`
+	DataPorter dataporter.DataPorterConfig `json:"dataporter"`
 }
 
 // ServerConfig サーバconfigを設定
@@ -31,7 +33,7 @@ func main() {
 	var config Config
 	json.Unmarshal(file, &config)
 	fmt.Println(config)
-
+	go dataporter.Dataporter(config.DataPorter)
 	chset := som.SomRoutine(config.Som)
 
 	// Echoのインスタンス作る
