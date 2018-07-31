@@ -8,7 +8,7 @@ import (
 )
 
 // MaxValue som unitの最大値
-const MaxValue = 256
+const MaxValue = 255
 
 // Unit 要素型
 type Unit struct {
@@ -35,6 +35,8 @@ type Som struct {
 	radius int
 	// 不偏分散係数
 	uVariance Factor
+	// マップのサイズ
+	size int
 }
 
 // DataMap データ実体
@@ -54,18 +56,19 @@ func initMapByEuclidean(r int) error {
 }
 
 // InitMap SOM初期化関数
-func initMap(r int, fn func(Unit, Unit) int) error {
+func initMap(size int, fn func(Unit, Unit) int) error {
 	distanceFunc = fn
 	rand.Seed(time.Now().UnixNano())
+	DataMap.size = size
 	// 中点の初期化
-	DataMap.midpointX = r / 2
-	DataMap.midpointY = r / 2
+	DataMap.midpointX = DataMap.size / 2
+	DataMap.midpointY = DataMap.size / 2
 
 	// Mapの初期化
-	DataMap.sMap = make([][]Unit, r)
-	for x := 0; x < r; x++ {
-		DataMap.sMap[x] = make([]Unit, r)
-		for y := 0; y < r; y++ {
+	DataMap.sMap = make([][]Unit, DataMap.size)
+	for x := 0; x < DataMap.size; x++ {
+		DataMap.sMap[x] = make([]Unit, DataMap.size)
+		for y := 0; y < DataMap.size; y++ {
 			DataMap.sMap[x][y].Red = rand.Intn(MaxValue)
 			DataMap.sMap[x][y].Blue = rand.Intn(MaxValue)
 			DataMap.sMap[x][y].Green = rand.Intn(MaxValue)
@@ -74,14 +77,14 @@ func initMap(r int, fn func(Unit, Unit) int) error {
 
 	// 近傍半径の初期化
 	DataMap.uVariance = calcUVariance(DataMap.sMap)
-	DataMap.radius = calcRadius(DataMap.uVariance, r)
+	DataMap.radius = calcRadius(DataMap.uVariance, DataMap.size)
 
 	return nil
 }
 
 // som index変換
 func getRadiusIndex(i int) int {
-	return (i + len(DataMap.sMap)) % (len(DataMap.sMap))
+	return (i + DataMap.size) % (DataMap.size)
 }
 
 // 不偏分散計算関数
@@ -136,6 +139,19 @@ func updateUnit(before Unit, t Unit, rFactor Factor) (r Unit) {
 	return r
 }
 
+// 中点距離取得関数
+func lengthMidpoint(x int, y int, midx int, midy int, size int) float64 {
+	difX := float64(x - midx)
+	if math.Abs(difX) > float64(size/2) {
+		difX = float64(midx - x)
+	}
+	difY := float64(y - midy)
+	if math.Abs(difY) > float64(size/2) {
+		difY = float64(midy - y)
+	}
+	return math.Sqrt(math.Pow(difX, 2) + math.Pow(difY, 2))
+}
+
 // Trait SOM更新関数。Unitのパラメータを受け取って中点からの距離を返却する
 func trait(t Unit) float64 {
 	// 初期値として適当な場所の距離を入れておく。
@@ -143,7 +159,7 @@ func trait(t Unit) float64 {
 	var dMin = distanceFunc(t, DataMap.sMap[0][0])
 
 	// BMU探索処理
-	for x := 0; x < len(DataMap.sMap); x++ {
+	for x := 0; x < DataMap.size; x++ {
 		for y := 0; y < len(DataMap.sMap[x]); y++ {
 			d := distanceFunc(t, DataMap.sMap[x][y])
 			if d < dMin {
@@ -158,18 +174,18 @@ func trait(t Unit) float64 {
 		for y := BMUindexY - DataMap.radius; y < (BMUindexY + DataMap.radius); y++ {
 			indexX := getRadiusIndex(x)
 			indexY := getRadiusIndex(y)
-			rFactor := calcRFactor(DataMap.midpointX-x, DataMap.midpointY-y, DataMap.uVariance, len(DataMap.sMap))
+			rFactor := calcRFactor(DataMap.midpointX-x, DataMap.midpointY-y, DataMap.uVariance, DataMap.size)
 			DataMap.sMap[indexX][indexY] = updateUnit(DataMap.sMap[indexX][indexY], t, rFactor)
 		}
 	}
 	// 標準偏差を更新する
 	DataMap.uVariance = calcUVariance(DataMap.sMap)
 	// 近傍半径を更新する
-	DataMap.radius = calcRadius(DataMap.uVariance, len(DataMap.sMap))
+	DataMap.radius = calcRadius(DataMap.uVariance, DataMap.size)
 	fmt.Println("BMU:", BMUindexX, BMUindexY, "MID:", DataMap.midpointX, DataMap.midpointY, DataMap.radius, DataMap.uVariance)
 
 	// 中点からの距離を計算する
-	resDist := math.Sqrt(math.Pow(float64(BMUindexX-DataMap.midpointX), 2) + math.Pow(float64(BMUindexY-DataMap.midpointY), 2))
+	resDist := lengthMidpoint(BMUindexX, BMUindexY, DataMap.midpointX, DataMap.midpointY, DataMap.size)
 	// 中点を更新する
 	if DataMap.midpointX < BMUindexX {
 		DataMap.midpointX++

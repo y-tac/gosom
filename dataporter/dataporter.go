@@ -32,7 +32,7 @@ func main() {
 		param.Unit.Red = memUsage()
 		param.Unit.Blue = cpuData()
 		param.Unit.Green = diskusage()
-		fmt.Println(param.Unit)
+		fmt.Println(param.Unit.Red, param.Unit.Green, param.Unit.Blue)
 		input, err := json.Marshal(param)
 		resp, err := http.Post("http://localhost:3306/trait", "application/json", bytes.NewBuffer(input))
 		if err != nil {
@@ -59,15 +59,15 @@ func main() {
 			return
 		}
 
-		fmt.Printf("%#v", output)
+		fmt.Printf("%#v\n", output)
 		time.Sleep(5 * time.Second)
 
 	}
 
 }
 func cpuData() int {
-	c, _ := cpu.Percent(5*time.Second, false)
-	return int(c[0] / 100 * som.MaxValue)
+	cpus, _ := cpu.Percent(time.Duration(1)*time.Second, false)
+	return int(cpus[0] / 100 * som.MaxValue)
 }
 
 func memUsage() int {
@@ -81,7 +81,7 @@ func diskusage() int {
 	for _, part := range parts {
 		u, _ := disk.Usage(part.Mountpoint)
 		somTotal += float64(u.Total)
-		somUsed += float64(u.Total)
+		somUsed += float64(u.Used)
 	}
 	return int(float64(som.MaxValue) * somUsed / somTotal)
 
