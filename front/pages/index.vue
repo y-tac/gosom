@@ -4,7 +4,7 @@
       <gosom-map/>
       <div class="links">
         <a
-          href="https://github.com/y-tac/gosomß"
+          href="https://github.com/y-tac/gosom"
           target="_blank"
           class="button--grey">GitHub</a>
       </div>

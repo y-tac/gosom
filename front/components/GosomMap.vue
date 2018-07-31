@@ -26,23 +26,16 @@ export default {
     }
   },
   created () {
-    axios.get('/map', {
-      params: {
-        page: 1,
-        per_page: 6,
-        query: 'nuxt.js'
-      }
-    })
+  },
+  mounted: function () {
+    axios.get('/map')
     .then(response => {
-      this.info = response.data
+      this.$store.dispatch('som/setMap',response.data.SomMap)
     })
     .catch(e => {
       console.error('error:', e)
     })
-  },
-  mounted: function () {
-    console.log('created')
-    this.$store.dispatch('createFunction')
+
   }
 
 }
