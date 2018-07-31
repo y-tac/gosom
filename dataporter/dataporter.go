@@ -1,4 +1,4 @@
-package main
+package dataporter
 
 import (
 	"bytes"
@@ -19,22 +19,34 @@ type traitAPIRequest struct {
 	Unit som.Unit
 }
 
+// DataPorterConfig dataporterのconfigを設定
+type DataPorterConfig struct {
+	Enable  bool   `json:"enable_porter"`
+	Baseurl string `json:"baseurl"`
+}
+
 // Response格納用
 type traitAPIResponse struct {
 	Distance float64
 }
 
-func main() {
+// Dataporter データ学習関数
+func Dataporter(config DataPorterConfig) {
+	if config.Enable == false {
+		return
+	}
 	fmt.Println("Start::DataClients")
 
 	for {
+		time.Sleep(5 * time.Second)
+
 		param := traitAPIRequest{}
 		param.Unit.Red = memUsage()
 		param.Unit.Blue = cpuData()
 		param.Unit.Green = diskusage()
 		fmt.Println(param.Unit.Red, param.Unit.Green, param.Unit.Blue)
 		input, err := json.Marshal(param)
-		resp, err := http.Post("http://localhost:3306/trait", "application/json", bytes.NewBuffer(input))
+		resp, err := http.Post(config.Baseurl+"/trait", "application/json", bytes.NewBuffer(input))
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -60,7 +72,6 @@ func main() {
 		}
 
 		fmt.Printf("%#v\n", output)
-		time.Sleep(5 * time.Second)
 
 	}
 
