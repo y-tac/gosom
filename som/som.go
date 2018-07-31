@@ -199,3 +199,18 @@ func trait(t Unit) float64 {
 	}
 	return resDist
 }
+
+func mapgenerate() (res [][]Unit) {
+	// 動作確認
+	xOffset := DataMap.midpointX - DataMap.size/2
+	yOffset := DataMap.midpointY - DataMap.size/2
+	for x := 0; x < DataMap.size; x++ {
+		for y := 0; y < DataMap.size; y++ {
+			indexX := getRadiusIndex(x + xOffset)
+			indexY := getRadiusIndex(y + yOffset)
+			res[x][y] = DataMap.sMap[indexX][indexY]
+		}
+	}
+
+	return
+}

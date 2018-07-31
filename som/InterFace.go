@@ -48,7 +48,7 @@ func SomRoutine(conf SomConfig) (chset ChanSet) {
 				if !ok {
 					return
 				}
-				mapCh.ResMap <- DataMap.sMap
+				mapCh.ResMap <- mapgenerate()
 			}
 		}
 	}(chset, conf)
