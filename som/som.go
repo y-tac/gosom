@@ -204,7 +204,9 @@ func mapgenerate() (res [][]Unit) {
 	// 動作確認
 	xOffset := DataMap.midpointX - DataMap.size/2
 	yOffset := DataMap.midpointY - DataMap.size/2
+	res = make([][]Unit, DataMap.size)
 	for x := 0; x < DataMap.size; x++ {
+		res[x] = make([]Unit, DataMap.size)
 		for y := 0; y < DataMap.size; y++ {
 			indexX := getRadiusIndex(x + xOffset)
 			indexY := getRadiusIndex(y + yOffset)
