@@ -1,0 +1,11 @@
+version: '3'
+services:
+  gosoml:
+    build: ./
+    ports:
+      - "80:3306"
+    volumes:
+      - ./server:/server
+      - ./front:/front
+      - ./config.json:/config.json
+
