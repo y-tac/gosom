@@ -8,7 +8,7 @@ import (
 )
 
 // MaxValue som unitの最大値
-const MaxValue = 256
+const MaxValue = 255
 
 // Unit 要素型
 type Unit struct {

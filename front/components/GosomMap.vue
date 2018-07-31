@@ -10,8 +10,6 @@
   display: inline-block;
   position: relative;
   overflow: hidden;
-  height: 300px;
-  width: 300px;
 }
 
 </style>
