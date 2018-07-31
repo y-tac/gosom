@@ -1,8 +1,16 @@
 import createCanvas from './modules/createCanvas'
+import axios from 'axios'
 
 export const actions = {
-  setMap(context, value) {
-    createCanvas(value)
+  setMap() {
+    axios.get('/map')
+    .then(response => {
+      createCanvas(response.data.SomMap)
+    })
+    .catch(e => {
+      console.error('error:', e)
+    })
+
   }
 }
 

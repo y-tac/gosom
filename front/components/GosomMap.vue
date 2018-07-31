@@ -17,7 +17,6 @@
 </style>
 
 <script>
-import axios from 'axios'
 
 export default {
   data () {
@@ -28,13 +27,11 @@ export default {
   created () {
   },
   mounted: function () {
-    axios.get('/map')
-    .then(response => {
-      this.$store.dispatch('som/setMap',response.data.SomMap)
-    })
-    .catch(e => {
-      console.error('error:', e)
-    })
+    var store = this.$store;
+    store.dispatch('som/setMap')
+    setInterval(function () {
+      store.dispatch('som/setMap')
+    }, 5000)
 
   }
 
