@@ -2,6 +2,8 @@ package som
 
 import (
 	"fmt"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // SomConfig SOMが要求するコンフィグ
@@ -27,11 +29,11 @@ type MapChan struct {
 }
 
 // SomRoutine SOMスレッド処理関数
-func SomRoutine(conf SomConfig) (chset ChanSet) {
+func SomRoutine(conf SomConfig, gosomDistance prometheus.Gauge) (chset ChanSet) {
 	chset.TraitCh = make(chan TraitChan)
 	chset.MapCh = make(chan MapChan)
 
-	go func(chset ChanSet, conf SomConfig) {
+	go func(chset ChanSet, conf SomConfig, gosomDistance prometheus.Gauge) {
 		err := initMapByEuclidean(conf.Size)
 		if err != nil {
 			panic(err)
@@ -43,7 +45,9 @@ func SomRoutine(conf SomConfig) (chset ChanSet) {
 					return
 				}
 				fmt.Println(traitCh.Unit)
-				traitCh.ResDistance <- trait(traitCh.Unit)
+				distance := trait(traitCh.Unit)
+				gosomDistance.Set(distance)
+				traitCh.ResDistance <- distance
 			case mapCh, ok := <-chset.MapCh:
 				if !ok {
 					return
@@ -51,6 +55,6 @@ func SomRoutine(conf SomConfig) (chset ChanSet) {
 				mapCh.ResMap <- mapgenerate()
 			}
 		}
-	}(chset, conf)
+	}(chset, conf, gosomDistance)
 	return
 }
