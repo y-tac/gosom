@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/y-tac/gosom/dataporter"
@@ -33,8 +35,17 @@ func main() {
 	var config Config
 	json.Unmarshal(file, &config)
 	fmt.Println(config)
+
+	gosomDistance := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "gosom",
+		Name:      "distance",
+		Help:      "Distance of midpoint to traitpoint",
+	})
+	prometheus.MustRegister(gosomDistance)
+
 	go dataporter.Dataporter(config.DataPorter)
-	chset := som.SomRoutine(config.Som)
+
+	chset := som.SomRoutine(config.Som, gosomDistance)
 
 	// Echoのインスタンス作る
 	e := echo.New()
@@ -42,13 +53,14 @@ func main() {
 	// 全てのリクエストで差し込みたいミドルウェア（ログとか）はここ
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
 	e.Static("/front", "front/dist")
 
 	// ルーティング
 	e.GET("/hello", handler.MainPage())
 	e.POST("/trait", handler.TraitAPI(chset.TraitCh))
 	e.GET("/map", handler.MapAPI(chset.MapCh))
-
+	e.GET("/metrics", echo.WrapHandler(prometheus.Handler()))
 	// サーバー起動
 	e.Start(":" + config.Server.Port)
 }
