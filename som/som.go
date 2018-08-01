@@ -170,14 +170,15 @@ func trait(t Unit) float64 {
 	}
 
 	// 更新処理
-	for x := BMUindexX - DataMap.radius; x < (BMUindexX + DataMap.radius); x++ {
-		for y := BMUindexY - DataMap.radius; y < (BMUindexY + DataMap.radius); y++ {
-			indexX := getRadiusIndex(x)
-			indexY := getRadiusIndex(y)
-			rFactor := calcRFactor(DataMap.midpointX-x, DataMap.midpointY-y, DataMap.uVariance, DataMap.size)
-			DataMap.sMap[indexX][indexY] = updateUnit(DataMap.sMap[indexX][indexY], t, rFactor)
+	for x := 0; x < DataMap.size; x++ {
+		for y := 0; y < DataMap.size; y++ {
+			if DataMap.radius >= int(lengthMidpoint(x, y, DataMap.midpointX, DataMap.midpointY, DataMap.size)) {
+				rFactor := calcRFactor(DataMap.midpointX-x, DataMap.midpointY-y, DataMap.uVariance, DataMap.size)
+				DataMap.sMap[x][y] = updateUnit(DataMap.sMap[x][y], t, rFactor)
+			}
 		}
 	}
+
 	// 標準偏差を更新する
 	DataMap.uVariance = calcUVariance(DataMap.sMap)
 	// 近傍半径を更新する
@@ -198,4 +199,21 @@ func trait(t Unit) float64 {
 		DataMap.midpointY--
 	}
 	return resDist
+}
+
+func mapgenerate() (res [][]Unit) {
+	// 動作確認
+	xOffset := DataMap.midpointX - DataMap.size/2
+	yOffset := DataMap.midpointY - DataMap.size/2
+	res = make([][]Unit, DataMap.size)
+	for x := 0; x < DataMap.size; x++ {
+		res[x] = make([]Unit, DataMap.size)
+		for y := 0; y < DataMap.size; y++ {
+			indexX := getRadiusIndex(x + xOffset)
+			indexY := getRadiusIndex(y + yOffset)
+			res[x][y] = DataMap.sMap[indexX][indexY]
+		}
+	}
+
+	return
 }
