@@ -8,7 +8,7 @@ import (
 )
 
 func TestInitToTrait(t *testing.T) {
-	conf := SomConfig{Size: 100}
+	conf := Config{Size: 100}
 	traitNum := int(50)
 	err := initMapByEuclidean(conf.Size)
 	if err != nil {
@@ -29,13 +29,13 @@ func TestInitToTrait(t *testing.T) {
 }
 
 func TestSomroutine(t *testing.T) {
-	conf := SomConfig{Size: 100}
+	conf := Config{Size: 100}
 	gosomDistance := prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "gosom",
 		Name:      "distance",
 		Help:      "Distance of midpoint to traitpoint",
 	})
-	set := SomRoutine(conf, gosomDistance)
+	set := Routine(conf, gosomDistance)
 	traitNum := int(50)
 	for i := 0; i < traitNum; i++ {
 		var data TraitChan
