@@ -19,9 +19,14 @@ const createCanvas = (value) => {
             var pixelIndex = x + y * canvasWidth;
             var dataIndex = pixelIndex * 4;
             var max = 255;
-            imageData.data[dataIndex + 0] = value[x][y].Red;
-            imageData.data[dataIndex + 1] = value[x][y].Green;
-            imageData.data[dataIndex + 2] = value[x][y].Blue;
+            var cmax = 0xff;
+            var rgb = [0x81 , 0xa7 ,0xf3];
+            var rgbMax = Math.max.apply(null,rgb);
+            var rgbMin = Math.min.apply(null,rgb);
+            var fixs = cmax - rgbMax + rgbMin;
+            imageData.data[dataIndex + 0] = fixs * value[x][y].Red/max + rgb[0];
+            imageData.data[dataIndex + 1] = fixs * value[x][y].Green/max + rgb[1] ;
+            imageData.data[dataIndex + 2] = fixs * value[x][y].Blue/max + rgb[2]  ;
             imageData.data[dataIndex + 3] = max;
         }
       }
