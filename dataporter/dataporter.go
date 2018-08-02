@@ -19,8 +19,8 @@ type traitAPIRequest struct {
 	Unit som.Unit
 }
 
-// DataPorterConfig dataporterのconfigを設定
-type DataPorterConfig struct {
+// Config dataporterのconfigを設定
+type Config struct {
 	Enable  bool   `json:"enable_porter"`
 	Baseurl string `json:"baseurl"`
 }
@@ -31,7 +31,7 @@ type traitAPIResponse struct {
 }
 
 // Dataporter データ学習関数
-func Dataporter(config DataPorterConfig) {
+func Dataporter(config Config) {
 	if config.Enable == false {
 		return
 	}

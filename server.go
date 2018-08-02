@@ -16,9 +16,9 @@ import (
 
 // Config 構造体。サブパッケージのconfigも設定する
 type Config struct {
-	Server     ServerConfig                `json:"server"`
-	Som        som.SomConfig               `json:"som"`
-	DataPorter dataporter.DataPorterConfig `json:"dataporter"`
+	Server     ServerConfig      `json:"server"`
+	Som        som.Config        `json:"som"`
+	DataPorter dataporter.Config `json:"dataporter"`
 }
 
 // ServerConfig サーバconfigを設定
@@ -45,7 +45,7 @@ func main() {
 
 	go dataporter.Dataporter(config.DataPorter)
 
-	chset := som.SomRoutine(config.Som, gosomDistance)
+	chset := som.Routine(config.Som, gosomDistance)
 
 	// Echoのインスタンス作る
 	e := echo.New()

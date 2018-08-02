@@ -6,8 +6,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// SomConfig SOMが要求するコンフィグ
-type SomConfig struct {
+// Config SOMが要求するコンフィグ
+type Config struct {
 	Size int `json:"size"`
 }
 
@@ -28,12 +28,12 @@ type MapChan struct {
 	ResMap chan [][]Unit
 }
 
-// SomRoutine SOMスレッド処理関数
-func SomRoutine(conf SomConfig, gosomDistance prometheus.Gauge) (chset ChanSet) {
+// Routine SOMスレッド処理関数
+func Routine(conf Config, gosomDistance prometheus.Gauge) (chset ChanSet) {
 	chset.TraitCh = make(chan TraitChan)
 	chset.MapCh = make(chan MapChan)
 
-	go func(chset ChanSet, conf SomConfig, gosomDistance prometheus.Gauge) {
+	go func(chset ChanSet, conf Config, gosomDistance prometheus.Gauge) {
 		err := initMapByEuclidean(conf.Size)
 		if err != nil {
 			panic(err)
