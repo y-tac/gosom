@@ -35,7 +35,9 @@ func TestSomroutine(t *testing.T) {
 		Name:      "distance",
 		Help:      "Distance of midpoint to traitpoint",
 	})
-	set := Routine(conf, gosomDistance)
+	set := MakeChannelRoutine()
+	quit := make(chan bool)
+	go Routine(set, conf, gosomDistance, quit)
 	traitNum := int(50)
 	for i := 0; i < traitNum; i++ {
 		var data TraitChan

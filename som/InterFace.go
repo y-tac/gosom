@@ -28,33 +28,37 @@ type MapChan struct {
 	ResMap chan [][]Unit
 }
 
-// Routine SOMスレッド処理関数
-func Routine(conf Config, gosomDistance prometheus.Gauge) (chset ChanSet) {
+// Routine SOM学習スレッド
+func Routine(chset ChanSet, conf Config, gosomDistance prometheus.Gauge, quit chan bool) {
+	err := initMapByEuclidean(conf.Size)
+	if err != nil {
+		panic(err)
+	}
+	for {
+		select {
+		case traitCh, ok := <-chset.TraitCh:
+			if !ok {
+				return
+			}
+			fmt.Println(traitCh.Unit)
+			distance := trait(traitCh.Unit)
+			gosomDistance.Set(distance)
+			traitCh.ResDistance <- distance
+		case mapCh, ok := <-chset.MapCh:
+			if !ok {
+				return
+			}
+			mapCh.ResMap <- mapgenerate()
+		case <-quit:
+			fmt.Println("Gosom closed.")
+			return
+		}
+	}
+}
+
+// MakeChannelRoutine SOMチャンネル生成処理関数
+func MakeChannelRoutine() (chset ChanSet) {
 	chset.TraitCh = make(chan TraitChan)
 	chset.MapCh = make(chan MapChan)
-
-	go func(chset ChanSet, conf Config, gosomDistance prometheus.Gauge) {
-		err := initMapByEuclidean(conf.Size)
-		if err != nil {
-			panic(err)
-		}
-		for {
-			select {
-			case traitCh, ok := <-chset.TraitCh:
-				if !ok {
-					return
-				}
-				fmt.Println(traitCh.Unit)
-				distance := trait(traitCh.Unit)
-				gosomDistance.Set(distance)
-				traitCh.ResDistance <- distance
-			case mapCh, ok := <-chset.MapCh:
-				if !ok {
-					return
-				}
-				mapCh.ResMap <- mapgenerate()
-			}
-		}
-	}(chset, conf, gosomDistance)
 	return
 }
