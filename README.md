@@ -40,6 +40,11 @@ dockerで動作させる場合、server、dataporterは変更する必要がな�
 # prometheusに出力するパラメータ
 - gosom_distance
   - 最後に学習したデータのBMUと中点との距離
+- gosom_radius
+  - 最後の学習時点での近傍半径
+- gosom_outlier_rate 
+  - 最後に学習したデータの外れ度合。distance/radiusで計算
+  - 1を超えたらおおむね外れ値にヒットしているはず(検証中)
 
 # ロジックについてのメモ
 自己組織化マップによる学習をベースに、下記の要領で学習を行う

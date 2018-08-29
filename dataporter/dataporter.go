@@ -31,48 +31,54 @@ type traitAPIResponse struct {
 }
 
 // Dataporter データ学習関数
-func Dataporter(config Config) {
+func Dataporter(config Config, quit chan bool) {
 	if config.Enable == false {
 		return
 	}
 	fmt.Println("Start::DataClients")
 
 	for {
-		time.Sleep(5 * time.Second)
-
-		param := traitAPIRequest{}
-		param.Unit.Red = memUsage()
-		param.Unit.Blue = cpuData()
-		param.Unit.Green = diskusage()
-		fmt.Println(param.Unit.Red, param.Unit.Green, param.Unit.Blue)
-		input, err := json.Marshal(param)
-		resp, err := http.Post(config.Baseurl+"/trait", "application/json", bytes.NewBuffer(input))
-		if err != nil {
-			fmt.Println(err.Error())
+		select {
+		case <-quit:
+			fmt.Println("DataPorter closed.")
 			return
-		}
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
+		default:
 
-		// ステータスによるエラーハンドリング
-		if resp.StatusCode != http.StatusOK {
-			fmt.Printf("%s", body)
-			return
+			time.Sleep(5 * time.Second)
+
+			param := traitAPIRequest{}
+			param.Unit.Red = memUsage()
+			param.Unit.Blue = cpuData()
+			param.Unit.Green = diskusage()
+			fmt.Println(param.Unit.Red, param.Unit.Green, param.Unit.Blue)
+			input, err := json.Marshal(param)
+			resp, err := http.Post(config.Baseurl+"/trait", "application/json", bytes.NewBuffer(input))
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			// ステータスによるエラーハンドリング
+			if resp.StatusCode != http.StatusOK {
+				fmt.Printf("%s", body)
+				return
+			}
+
+			// BodyのJSONをデコードする
+			output := traitAPIResponse{}
+			err = json.Unmarshal(body, &output)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			fmt.Printf("%#v\n", output)
 		}
-
-		// BodyのJSONをデコードする
-		output := traitAPIResponse{}
-		err = json.Unmarshal(body, &output)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-
-		fmt.Printf("%#v\n", output)
-
 	}
 
 }

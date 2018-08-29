@@ -5,7 +5,38 @@ import (
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+// Config SOMが要求するコンフィグ
+type Config struct {
+	Size int `json:"size"`
+}
+
+// ChanSet SOM通信用チャンネル
+type ChanSet struct {
+	TraitCh chan TraitChan
+	MapCh   chan MapChan
+}
+
+// TraitChan 学習情報やり取り用
+type TraitChan struct {
+	Unit        Unit
+	ResDistance chan float64
+}
+
+// MapChan SOM Routineで利用するチャネル
+type MapChan struct {
+	ResMap chan [][]Unit
+}
+
+// Collector  SOM Routineで利用するチャネル
+type Collector struct {
+	Distance    prometheus.Gauge
+	Radius      prometheus.Gauge
+	OutlierRate prometheus.Gauge
+}
 
 // MaxValue som unitの最大値
 const MaxValue = 255
@@ -153,7 +184,7 @@ func lengthMidpoint(x int, y int, midx int, midy int, size int) float64 {
 }
 
 // Trait SOM更新関数。Unitのパラメータを受け取って中点からの距離を返却する
-func trait(t Unit) float64 {
+func trait(t Unit) (float64, float64) {
 	// 初期値として適当な場所の距離を入れておく。
 	BMUindexX, BMUindexY := 0, 0
 	var dMin = distanceFunc(t, DataMap.sMap[0][0])
@@ -179,14 +210,9 @@ func trait(t Unit) float64 {
 		}
 	}
 
-	// 標準偏差を更新する
-	DataMap.uVariance = calcUVariance(DataMap.sMap)
-	// 近傍半径を更新する
-	DataMap.radius = calcRadius(DataMap.uVariance, DataMap.size)
-	fmt.Println("BMU:", BMUindexX, BMUindexY, "MID:", DataMap.midpointX, DataMap.midpointY, DataMap.radius, DataMap.uVariance)
-
 	// 中点からの距離を計算する
 	resDist := lengthMidpoint(BMUindexX, BMUindexY, DataMap.midpointX, DataMap.midpointY, DataMap.size)
+	resRadius := float64(DataMap.radius)
 	// 中点を更新する
 	if DataMap.midpointX < BMUindexX {
 		DataMap.midpointX++
@@ -198,7 +224,13 @@ func trait(t Unit) float64 {
 	} else {
 		DataMap.midpointY--
 	}
-	return resDist
+	// 標準偏差を更新する
+	DataMap.uVariance = calcUVariance(DataMap.sMap)
+	// 近傍半径を更新する
+	DataMap.radius = calcRadius(DataMap.uVariance, DataMap.size)
+	fmt.Println("BMU:", BMUindexX, BMUindexY, "MID:", DataMap.midpointX, DataMap.midpointY, DataMap.radius, DataMap.uVariance)
+
+	return resDist, resRadius
 }
 
 func mapgenerate() (res [][]Unit) {
@@ -215,5 +247,67 @@ func mapgenerate() (res [][]Unit) {
 		}
 	}
 
+	return
+}
+
+// Routine SOM学習スレッド
+func Routine(chset ChanSet, conf Config, collector Collector, quit chan bool) {
+	err := initMapByEuclidean(conf.Size)
+	if err != nil {
+		panic(err)
+	}
+	for {
+		select {
+		case traitCh, ok := <-chset.TraitCh:
+			if !ok {
+				return
+			}
+			fmt.Println(traitCh.Unit)
+			distance, radius := trait(traitCh.Unit)
+			collector.Distance.Set(distance)
+			collector.Radius.Set(radius)
+			collector.OutlierRate.Set(distance / radius)
+			traitCh.ResDistance <- distance
+		case mapCh, ok := <-chset.MapCh:
+			if !ok {
+				return
+			}
+			mapCh.ResMap <- mapgenerate()
+		case <-quit:
+			fmt.Println("Gosom closed.")
+			return
+		}
+	}
+}
+
+// MakeCollector Exporter定義生成関数
+func MakeCollector() (collector Collector) {
+	collector.Distance = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "gosom",
+		Name:      "distance",
+		Help:      "Distance of midpoint to traitpoint",
+	})
+	collector.Radius = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "gosom",
+		Name:      "radius",
+		Help:      "Neibohr radius of som",
+	})
+	collector.OutlierRate = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "gosom",
+		Name:      "outlier_rate",
+		Help:      "Outlier rate of trait data.(Distance/Radius)",
+	})
+
+	prometheus.MustRegister(collector.Distance)
+	prometheus.MustRegister(collector.Radius)
+	prometheus.MustRegister(collector.OutlierRate)
+
+	return
+}
+
+// MakeChannelRoutine SOMチャンネル生成処理関数
+func MakeChannelRoutine() (chset ChanSet) {
+	chset.TraitCh = make(chan TraitChan)
+	chset.MapCh = make(chan MapChan)
 	return
 }

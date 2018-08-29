@@ -36,17 +36,15 @@ func main() {
 	json.Unmarshal(file, &config)
 	fmt.Println(config)
 
-	gosomDistance := prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace: "gosom",
-		Name:      "distance",
-		Help:      "Distance of midpoint to traitpoint",
-	})
-	prometheus.MustRegister(gosomDistance)
+	dataporterQuit := make(chan bool)
+	go dataporter.Dataporter(config.DataPorter, dataporterQuit)
+	defer closeGoroutine(dataporterQuit)
 
-	go dataporter.Dataporter(config.DataPorter)
-
-	chset := som.Routine(config.Som, gosomDistance)
-
+	gosomQuit := make(chan bool)
+	chset := som.MakeChannelRoutine()
+	collector := som.MakeCollector()
+	go som.Routine(chset, config.Som, collector, gosomQuit)
+	defer closeGoroutine(gosomQuit)
 	// Echoのインスタンス作る
 	e := echo.New()
 
@@ -63,4 +61,10 @@ func main() {
 	e.GET("/metrics", echo.WrapHandler(prometheus.Handler()))
 	// サーバー起動
 	e.Start(":" + config.Server.Port)
+}
+
+// goroutine終了関数
+func closeGoroutine(quit chan bool) {
+	quit <- true
+	return
 }
