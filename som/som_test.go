@@ -3,8 +3,6 @@ package som
 import (
 	"math/rand"
 	"testing" // テストで使える関数・構造体が用意されているパッケージをimport
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func TestInitToTrait(t *testing.T) {
@@ -30,14 +28,10 @@ func TestInitToTrait(t *testing.T) {
 
 func TestSomroutine(t *testing.T) {
 	conf := Config{Size: 100}
-	gosomDistance := prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace: "gosom",
-		Name:      "distance",
-		Help:      "Distance of midpoint to traitpoint",
-	})
+	collector := MakeCollector()
 	set := MakeChannelRoutine()
 	quit := make(chan bool)
-	go Routine(set, conf, gosomDistance, quit)
+	go Routine(set, conf, collector, quit)
 	traitNum := int(50)
 	for i := 0; i < traitNum; i++ {
 		var data TraitChan

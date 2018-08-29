@@ -31,8 +31,13 @@ type MapChan struct {
 	ResMap chan [][]Unit
 }
 
+// Collector  SOM Routineで利用するチャネル
+type Collector struct {
+	Distance prometheus.Gauge
+}
+
 // Routine SOM学習スレッド
-func Routine(chset ChanSet, conf Config, gosomDistance prometheus.Gauge, quit chan bool) {
+func Routine(chset ChanSet, conf Config, collector Collector, quit chan bool) {
 	err := initMapByEuclidean(conf.Size)
 	if err != nil {
 		panic(err)
@@ -45,7 +50,7 @@ func Routine(chset ChanSet, conf Config, gosomDistance prometheus.Gauge, quit ch
 			}
 			fmt.Println(traitCh.Unit)
 			distance := trait(traitCh.Unit)
-			gosomDistance.Set(distance)
+			collector.Distance.Set(distance)
 			traitCh.ResDistance <- distance
 		case mapCh, ok := <-chset.MapCh:
 			if !ok {
@@ -57,6 +62,18 @@ func Routine(chset ChanSet, conf Config, gosomDistance prometheus.Gauge, quit ch
 			return
 		}
 	}
+}
+
+// MakeCollector Exporter定義生成関数
+func MakeCollector() (collector Collector) {
+	collector.Distance = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: "gosom",
+		Name:      "distance",
+		Help:      "Distance of midpoint to traitpoint",
+	})
+	prometheus.MustRegister(collector.Distance)
+
+	return
 }
 
 // MakeChannelRoutine SOMチャンネル生成処理関数
