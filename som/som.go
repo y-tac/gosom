@@ -289,13 +289,13 @@ func MakeCollector() (collector Collector) {
 	})
 	collector.Radius = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "gosom",
-		Name:      "Radius",
-		Help:      "Neibohr Radius of som",
+		Name:      "radius",
+		Help:      "Neibohr radius of som",
 	})
 	collector.OutlierRate = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "gosom",
-		Name:      "OutlierRate",
-		Help:      "OutlierRate of trait data.(Distance/Radius)",
+		Name:      "outlier_rate",
+		Help:      "Outlier rate of trait data.(Distance/Radius)",
 	})
 
 	prometheus.MustRegister(collector.Distance)
